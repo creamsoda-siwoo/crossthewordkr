@@ -1,0 +1,5 @@
+{
+  "name": "cross the word(korean)",
+  "description": "A Korean word chain game (끝말잇기) against an AI opponent with adjustable difficulty.",
+  "requestFramePermissions": []
+}

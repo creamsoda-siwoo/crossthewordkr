@@ -1,0 +1,217 @@
+:root {
+  --background-color: #f0f4f8;
+  --container-bg-color: #ffffff;
+  --primary-color: #4a90e2;
+  --secondary-color: #50e3c2;
+  --text-color: #333333;
+  --light-text-color: #777777;
+  --border-color: #d8e1e8;
+  --error-color: #e57373;
+  --font-family: 'Noto Sans KR', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#root {
+  width: 100%;
+  max-width: 500px;
+}
+
+.app-container {
+  background-color: var(--container-bg-color);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+header p {
+  font-size: 1rem;
+  color: var(--light-text-color);
+}
+
+.difficulty-selector {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--background-color);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.difficulty-selector button {
+  flex-grow: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--light-text-color);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.difficulty-selector button.active {
+  background-color: var(--container-bg-color);
+  color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.game-area {
+  width: 100%;
+}
+
+.game-history {
+  height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #fafcff;
+}
+
+.chat-bubble {
+  padding: 10px 16px;
+  border-radius: 18px;
+  max-width: 70%;
+  word-break: break-word;
+}
+
+.chat-bubble.user {
+  background-color: var(--primary-color);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.ai {
+  background-color: #e9ecef;
+  color: var(--text-color);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.current-word {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  color: var(--light-text-color);
+  height: 30px;
+}
+
+.current-word span {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  background-color: var(--primary-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-left: 8px;
+}
+
+.input-form {
+  display: flex;
+  gap: 10px;
+}
+
+.input-form input {
+  flex-grow: 1;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: var(--font-family);
+  transition: border-color 0.3s ease;
+}
+
+.input-form input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.input-form button {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.input-form button:disabled {
+  background-color: #a0c3ed;
+  cursor: not-allowed;
+}
+
+.game-status {
+  margin-top: 16px;
+  font-size: 1rem;
+  font-weight: 500;
+  min-height: 24px;
+}
+
+.game-status.loading {
+  color: var(--light-text-color);
+}
+
+.game-status.error {
+  color: var(--error-color);
+}
+
+.game-status.win {
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+}
+
+.game-status.lose {
+  color: var(--error-color);
+  font-size: 1.5rem;
+}
+
+/* For scrollbar styling */
+.game-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.game-history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.game-history::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
