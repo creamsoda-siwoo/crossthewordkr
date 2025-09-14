@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { GoogleGenAI, Chat } from "@google/genai";
 
-type Difficulty = "쉬움" | "보통" | "어려움";
+type Difficulty = "쉬움" | "보통" | "어려움" | "최고난도";
 type GameTurn = {
   player: "user" | "ai";
   word: string;
@@ -52,6 +52,11 @@ const App = () => {
         break;
       case "어려움":
         instruction += "7. '륨', '늄', '듐' 처럼 상대방이 다음 단어를 잇기 어려운 한방 단어를 전략적으로 사용하세요.";
+        break;
+      case "최고난도":
+        instruction += `7. 당신은 국어학자입니다. 일상에서 잘 쓰이지 않는 학술 용어, 전문 용어, 고유 명사 등 매우 어려운 단어를 사용하세요.
+8. '륨', '늄', '듐' 처럼 상대방이 다음 단어를 잇기 어려운 한방 단어를 매우 적극적으로 사용하세요.
+9. 가능한 3글자 이상의 단어를 사용하세요.`;
         break;
     }
     return instruction;
@@ -130,7 +135,7 @@ const App = () => {
       </header>
       
       <div className="difficulty-selector">
-        {(["쉬움", "보통", "어려움"] as Difficulty[]).map((level) => (
+        {(["쉬움", "보통", "어려움", "최고난도"] as Difficulty[]).map((level) => (
           <button 
             key={level} 
             className={difficulty === level ? 'active' : ''}
