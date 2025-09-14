@@ -22,6 +22,7 @@ const App = () => {
   const [statusMessage, setStatusMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isApiReady, setIsApiReady] = useState(true);
   const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,6 +64,14 @@ const App = () => {
   };
 
   const initializeChat = () => {
+    if (typeof process === 'undefined' || !process.env.API_KEY) {
+      setStatusMessage("API 키가 설정되지 않아 게임을 시작할 수 없습니다.");
+      setIsError(true);
+      setIsApiReady(false);
+      return;
+    }
+    setIsApiReady(true);
+
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
     const newChat = ai.chats.create({
       model: "gemini-2.5-flash",
@@ -141,6 +150,7 @@ const App = () => {
             className={difficulty === level ? 'active' : ''}
             onClick={() => handleNewGame(level)}
             aria-pressed={difficulty === level}
+            disabled={!isApiReady}
           >
             {level}
           </button>
@@ -148,44 +158,54 @@ const App = () => {
       </div>
 
       <main className="game-area">
-        <div className="game-history" ref={historyRef} aria-live="polite">
-          {gameHistory.length === 0 && <p style={{color: '#999', alignSelf: 'center', margin: 'auto'}}>게임 기록이 여기에 표시됩니다.</p>}
-          {gameHistory.map((turn, index) => (
-            <div key={index} className={`chat-bubble ${turn.player}`}>
-              {turn.word}
-            </div>
-          ))}
-        </div>
-
-        {!isGameOver ? (
+        {isApiReady ? (
           <>
-            <div className="current-word">
-              {lastChar ? (
-                <>
-                  다음 단어는 <span aria-label={`시작 글자: ${lastChar}`}>{lastChar}</span> (으)로 시작합니다.
-                </>
-              ) : (
-                "첫 단어를 입력해주세요."
-              )}
+            <div className="game-history" ref={historyRef} aria-live="polite">
+              {gameHistory.length === 0 && <p style={{color: '#999', alignSelf: 'center', margin: 'auto'}}>게임 기록이 여기에 표시됩니다.</p>}
+              {gameHistory.map((turn, index) => (
+                <div key={index} className={`chat-bubble ${turn.player}`}>
+                  {turn.word}
+                </div>
+              ))}
             </div>
-            <form className="input-form" onSubmit={handleSubmit}>
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                placeholder={isLoading ? "AI가 생각 중..." : "단어를 입력하세요"}
-                disabled={isLoading}
-                aria-label="단어 입력"
-              />
-              <button type="submit" disabled={isLoading || !userInput.trim()}>
-                {isLoading ? "..." : "입력"}
+
+            {!isGameOver ? (
+              <>
+                <div className="current-word">
+                  {lastChar ? (
+                    <>
+                      다음 단어는 <span aria-label={`시작 글자: ${lastChar}`}>{lastChar}</span> (으)로 시작합니다.
+                    </>
+                  ) : (
+                    "첫 단어를 입력해주세요."
+                  )}
+                </div>
+                <form className="input-form" onSubmit={handleSubmit}>
+                  <input
+                    type="text"
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    placeholder={isLoading ? "AI가 생각 중..." : "단어를 입력하세요"}
+                    disabled={isLoading}
+                    aria-label="단어 입력"
+                  />
+                  <button type="submit" disabled={isLoading || !userInput.trim()}>
+                    {isLoading ? "..." : "입력"}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <button className="restart-button" onClick={initializeChat}>
+                Restart Game
               </button>
-            </form>
+            )}
           </>
         ) : (
-          <button className="restart-button" onClick={initializeChat}>
-            다시 시작
-          </button>
+          <div className="game-history">
+            <p style={{color: 'var(--error-color)', alignSelf: 'center', margin: 'auto', padding: '20px'}}>
+              {statusMessage}
+            </p>
+          </div>
         )}
       </main>
       
