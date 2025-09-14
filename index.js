@@ -5,24 +5,18 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { GoogleGenAI, Chat } from "@google/genai";
-
-type Difficulty = "쉬움" | "보통" | "어려움" | "최고난도";
-type GameTurn = {
-  player: "user" | "ai";
-  word: string;
-};
+import { GoogleGenAI } from "@google/genai";
 
 const App = () => {
-  const [difficulty, setDifficulty] = useState<Difficulty>("보통");
-  const [chat, setChat] = useState<Chat | null>(null);
-  const [gameHistory, setGameHistory] = useState<GameTurn[]>([]);
+  const [difficulty, setDifficulty] = useState("보통");
+  const [chat, setChat] = useState(null);
+  const [gameHistory, setGameHistory] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const historyRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef(null);
 
   useEffect(() => {
     initializeChat();
@@ -34,7 +28,7 @@ const App = () => {
     }
   }, [gameHistory]);
   
-  const getSystemInstruction = (level: Difficulty) => {
+  const getSystemInstruction = (level) => {
     let instruction = `당신은 '끝말잇기' 게임의 AI 상대입니다. 다음 규칙을 엄격하게 준수해주세요.
 1.  항상 한 단어의 명사로만 응답하세요.
 2.  사용자의 단어가 유효하지 않거나 규칙에 맞지 않으면, 반드시 "INVALID"라고만 응답하세요.
@@ -63,7 +57,7 @@ const App = () => {
   };
 
   const initializeChat = () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const newChat = ai.chats.create({
       model: "gemini-2.5-flash",
       config: {
@@ -78,16 +72,16 @@ const App = () => {
     setIsGameOver(false);
   };
   
-  const handleNewGame = (level: Difficulty) => {
+  const handleNewGame = (level) => {
     setDifficulty(level);
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userInput.trim() || isLoading || !chat || isGameOver) return;
 
     const userWord = userInput.trim();
-    const newHistory = [...gameHistory, { player: "user" as const, word: userWord }];
+    const newHistory = [...gameHistory, { player: "user", word: userWord }];
     setGameHistory(newHistory);
     setUserInput("");
     setIsLoading(true);
@@ -127,80 +121,64 @@ const App = () => {
   const currentWord = gameHistory.length > 0 ? gameHistory[gameHistory.length - 1].word : "";
   const lastChar = currentWord ? currentWord[currentWord.length - 1] : "";
 
-  return (
-    <div className="app-container">
-      <header>
-        <h1>한국어 끝말잇기</h1>
-        <p>AI와 함께하는 끝말잇기 게임</p>
-      </header>
-      
-      <div className="difficulty-selector">
-        {(["쉬움", "보통", "어려움", "최고난도"] as Difficulty[]).map((level) => (
-          <button 
-            key={level} 
-            className={difficulty === level ? 'active' : ''}
-            onClick={() => handleNewGame(level)}
-            aria-pressed={difficulty === level}
-          >
-            {level}
-          </button>
-        ))}
-      </div>
-
-      <main className="game-area">
-        <div className="game-history" ref={historyRef} aria-live="polite">
-          {gameHistory.length === 0 && <p style={{color: '#999', alignSelf: 'center', margin: 'auto'}}>게임 기록이 여기에 표시됩니다.</p>}
-          {gameHistory.map((turn, index) => (
-            <div key={index} className={`chat-bubble ${turn.player}`}>
-              {turn.word}
-            </div>
-          ))}
-        </div>
-
-        {!isGameOver ? (
-          <>
-            <div className="current-word">
-              {lastChar ? (
-                <>
-                  다음 단어는 <span aria-label={`시작 글자: ${lastChar}`}>{lastChar}</span> (으)로 시작합니다.
-                </>
-              ) : (
-                "첫 단어를 입력해주세요."
-              )}
-            </div>
-            <form className="input-form" onSubmit={handleSubmit}>
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                placeholder={isLoading ? "AI가 생각 중..." : "단어를 입력하세요"}
-                disabled={isLoading}
-                aria-label="단어 입력"
-              />
-              <button type="submit" disabled={isLoading || !userInput.trim()}>
-                {isLoading ? "..." : "입력"}
-              </button>
-            </form>
-          </>
-        ) : (
-          <button className="restart-button" onClick={initializeChat}>
-            다시 시작
-          </button>
-        )}
-      </main>
-      
-      <footer>
-        <div 
-          className={`game-status ${isError ? 'error' : ''} ${isGameOver && statusMessage.includes('이겼습니다') ? 'win' : ''} ${isGameOver && statusMessage.includes('졌습니다') ? 'lose' : ''} ${isLoading ? 'loading' : ''}`}
-          aria-live="assertive"
-        >
-          {statusMessage}
-        </div>
-      </footer>
-    </div>
+  return React.createElement("div", { className: "app-container" },
+    React.createElement("header", null,
+      React.createElement("h1", null, "한국어 끝말잇기"),
+      React.createElement("p", null, "AI와 함께하는 끝말잇기 게임")
+    ),
+    React.createElement("div", { className: "difficulty-selector" },
+      ["쉬움", "보통", "어려움", "최고난도"].map((level) =>
+        React.createElement("button", {
+          key: level,
+          className: difficulty === level ? 'active' : '',
+          onClick: () => handleNewGame(level),
+          "aria-pressed": difficulty === level
+        }, level)
+      )
+    ),
+    React.createElement("main", { className: "game-area" },
+      React.createElement("div", { className: "game-history", ref: historyRef, "aria-live": "polite" },
+        gameHistory.length === 0 && React.createElement("p", { style: { color: '#999', alignSelf: 'center', margin: 'auto' } }, "게임 기록이 여기에 표시됩니다."),
+        gameHistory.map((turn, index) =>
+          React.createElement("div", { key: index, className: `chat-bubble ${turn.player}` }, turn.word)
+        )
+      ),
+      !isGameOver ?
+        React.createElement(React.Fragment, null,
+          React.createElement("div", { className: "current-word" },
+            lastChar ?
+              React.createElement(React.Fragment, null,
+                "다음 단어는 ",
+                React.createElement("span", { "aria-label": `시작 글자: ${lastChar}` }, lastChar),
+                " (으)로 시작합니다."
+              ) :
+              "첫 단어를 입력해주세요."
+          ),
+          React.createElement("form", { className: "input-form", onSubmit: handleSubmit },
+            React.createElement("input", {
+              type: "text",
+              value: userInput,
+              onChange: (e) => setUserInput(e.target.value),
+              placeholder: isLoading ? "AI가 생각 중..." : "단어를 입력하세요",
+              disabled: isLoading,
+              "aria-label": "단어 입력"
+            }),
+            React.createElement("button", { type: "submit", disabled: isLoading || !userInput.trim() },
+              isLoading ? "..." : "입력"
+            )
+          )
+        ) :
+        React.createElement("button", { className: "restart-button", onClick: initializeChat }, "다시 시작")
+    ),
+    React.createElement("footer", null,
+      React.createElement("div", {
+        className: `game-status ${isError ? 'error' : ''} ${isGameOver && statusMessage.includes('이겼습니다') ? 'win' : ''} ${isGameOver && statusMessage.includes('졌습니다') ? 'lose' : ''} ${isLoading ? 'loading' : ''}`,
+        "aria-live": "assertive"
+      }, statusMessage)
+    )
   );
 };
 
-const container = document.getElementById("root")!;
+const container = document.getElementById("root");
 const root = createRoot(container);
-root.render(<App />);
+root.render(React.createElement(App));
