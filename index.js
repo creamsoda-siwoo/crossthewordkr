@@ -13,10 +13,9 @@ const App = () => {
   const [gameHistory, setGameHistory] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState("게임을 초기화하는 중...");
   const [isError, setIsError] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [isApiReady, setIsApiReady] = useState(true);
   const historyRef = useRef(null);
 
   useEffect(() => {
@@ -58,27 +57,32 @@ const App = () => {
   };
 
   const initializeChat = () => {
-    if (typeof process === 'undefined' || !process.env.API_KEY) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
       setStatusMessage("API 키가 설정되지 않아 게임을 시작할 수 없습니다.");
       setIsError(true);
-      setIsApiReady(false);
       return;
     }
-    setIsApiReady(true);
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const newChat = ai.chats.create({
-      model: "gemini-2.5-flash",
-      config: {
-        systemInstruction: getSystemInstruction(difficulty),
-      },
-    });
-    setChat(newChat);
-    setGameHistory([]);
-    setUserInput("");
-    setStatusMessage("게임을 시작하려면 첫 단어를 입력하세요.");
-    setIsError(false);
-    setIsGameOver(false);
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const newChat = ai.chats.create({
+        model: "gemini-2.5-flash",
+        config: {
+          systemInstruction: getSystemInstruction(difficulty),
+        },
+      });
+      setChat(newChat);
+      setGameHistory([]);
+      setUserInput("");
+      setStatusMessage("게임을 시작하려면 첫 단어를 입력하세요.");
+      setIsError(false);
+      setIsGameOver(false);
+    } catch (e) {
+      console.error(e);
+      setStatusMessage("API 키가 유효하지 않거나 초기화에 실패했습니다.");
+      setIsError(true);
+    }
   };
   
   const handleNewGame = (level) => {
@@ -87,7 +91,7 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userInput.trim() || isLoading || !chat || isGameOver) return;
+    if (!userInput.trim() || isLoading || !chat || isGameOver || isError) return;
 
     const userWord = userInput.trim();
     const newHistory = [...gameHistory, { player: "user", word: userWord }];
@@ -98,7 +102,6 @@ const App = () => {
     setIsError(false);
     
     try {
-      // Construct message history for context
       const historyForAI = gameHistory.map(turn => `${turn.player === 'user' ? '사용자' : 'AI'}: ${turn.word}`).join('\n');
       const message = `이전 단어들:\n${historyForAI}\n\n사용자: ${userWord}`;
       
@@ -142,49 +145,43 @@ const App = () => {
           className: difficulty === level ? 'active' : '',
           onClick: () => handleNewGame(level),
           "aria-pressed": difficulty === level,
-          disabled: !isApiReady
+          disabled: isError,
         }, level)
       )
     ),
     React.createElement("main", { className: "game-area" },
-      isApiReady ?
-        React.createElement(React.Fragment, null,
-          React.createElement("div", { className: "game-history", ref: historyRef, "aria-live": "polite" },
-            gameHistory.length === 0 && React.createElement("p", { style: { color: '#999', alignSelf: 'center', margin: 'auto' } }, "게임 기록이 여기에 표시됩니다."),
-            gameHistory.map((turn, index) =>
-              React.createElement("div", { key: index, className: `chat-bubble ${turn.player}` }, turn.word)
-            )
-          ),
-          !isGameOver ?
-            React.createElement(React.Fragment, null,
-              React.createElement("div", { className: "current-word" },
-                lastChar ?
-                  React.createElement(React.Fragment, null,
-                    "다음 단어는 ",
-                    React.createElement("span", { "aria-label": `시작 글자: ${lastChar}` }, lastChar),
-                    " (으)로 시작합니다."
-                  ) :
-                  "첫 단어를 입력해주세요."
-              ),
-              React.createElement("form", { className: "input-form", onSubmit: handleSubmit },
-                React.createElement("input", {
-                  type: "text",
-                  value: userInput,
-                  onChange: (e) => setUserInput(e.target.value),
-                  placeholder: isLoading ? "AI가 생각 중..." : "단어를 입력하세요",
-                  disabled: isLoading,
-                  "aria-label": "단어 입력"
-                }),
-                React.createElement("button", { type: "submit", disabled: isLoading || !userInput.trim() },
-                  isLoading ? "..." : "입력"
-                )
-              )
-            ) :
-            React.createElement("button", { className: "restart-button", onClick: initializeChat }, "Restart Game")
-        ) :
-        React.createElement("div", { className: "game-history" },
-          React.createElement("p", { style: { color: 'var(--error-color)', alignSelf: 'center', margin: 'auto', padding: '20px' } }, statusMessage)
+      React.createElement("div", { className: "game-history", ref: historyRef, "aria-live": "polite" },
+        gameHistory.length === 0 && !isError && React.createElement("p", { style: { color: '#999', alignSelf: 'center', margin: 'auto' } }, "게임 기록이 여기에 표시됩니다."),
+        gameHistory.map((turn, index) =>
+          React.createElement("div", { key: index, className: `chat-bubble ${turn.player}` }, turn.word)
         )
+      ),
+      !isGameOver ?
+        React.createElement(React.Fragment, null,
+          React.createElement("div", { className: "current-word" },
+            isError ? "" : lastChar ?
+              React.createElement(React.Fragment, null,
+                "다음 단어는 ",
+                React.createElement("span", { "aria-label": `시작 글자: ${lastChar}` }, lastChar),
+                " (으)로 시작합니다."
+              ) :
+              "첫 단어를 입력해주세요."
+          ),
+          React.createElement("form", { className: "input-form", onSubmit: handleSubmit },
+            React.createElement("input", {
+              type: "text",
+              value: userInput,
+              onChange: (e) => setUserInput(e.target.value),
+              placeholder: isLoading ? "AI가 생각 중..." : "단어를 입력하세요",
+              disabled: isLoading || isGameOver || isError,
+              "aria-label": "단어 입력"
+            }),
+            React.createElement("button", { type: "submit", disabled: isLoading || !userInput.trim() || isGameOver || isError },
+              isLoading ? "..." : "입력"
+            )
+          )
+        ) :
+        React.createElement("button", { className: "restart-button", onClick: initializeChat }, "Restart Game")
     ),
     React.createElement("footer", null,
       React.createElement("div", {

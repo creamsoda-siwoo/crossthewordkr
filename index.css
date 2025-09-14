@@ -83,6 +83,20 @@ header p {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+.difficulty-selector button:disabled,
+.difficulty-selector button:disabled:hover {
+  color: #bdc3c7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.difficulty-selector button.active:disabled,
+.difficulty-selector button.active:disabled:hover {
+  background-color: var(--background-color);
+  color: #bdc3c7;
+}
+
+
 .game-area {
   width: 100%;
 }
